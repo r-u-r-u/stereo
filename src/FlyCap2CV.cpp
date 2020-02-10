@@ -30,11 +30,12 @@ FlyCap2CVWrapper::FlyCap2CVWrapper(int number)
     // Frame Rate: 120fps
     flycamError = flycam.SetVideoModeAndFrameRate(VIDEOMODE_FORMAT7, FRAMERATE_FORMAT7);
     Format7ImageSettings imgSettings;
-    imgSettings.offsetX = 268;
-    imgSettings.offsetY = 248;
-    imgSettings.width = 640;
-    imgSettings.height = 480;
-    imgSettings.pixelFormat = PIXEL_FORMAT_422YUV8;
+//    imgSettings.offsetX = 0;
+//    imgSettings.offsetY = 0;
+    imgSettings.width = 1280;
+    imgSettings.height = 960;
+//    imgSettings.pixelFormat = PIXEL_FORMAT_422YUV8;
+    imgSettings.pixelFormat = PIXEL_FORMAT_RAW8;
     flycamError = flycam.SetFormat7Configuration(&imgSettings, 100.0f);
     if (flycamError != PGRERROR_OK)
     {
@@ -47,7 +48,7 @@ FlyCap2CVWrapper::FlyCap2CVWrapper(int number)
     autoExposure(false, 1.585f);
     autoSaturation(false, 100.0f);
     autoShutter(false, 7.5f);
-    autoGain(false, 0.0f);
+    autoGain(false, 10.0f);
 
     flycamError = flycam.StartCapture();
     if (flycamError == PGRERROR_ISOCH_BANDWIDTH_EXCEEDED)
