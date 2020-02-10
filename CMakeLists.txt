@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 add_definitions(-Wall)
 add_definitions(-std=c++11)
+add_compile_options(-D CALIBRATE=1)
 
 find_package(OpenCV REQUIRED)
 
