@@ -4,7 +4,89 @@
 #include<vector>
 
 #include"opencv2/opencv.hpp"
+#include"opencv2/cudastereo.hpp"
 #include"FlyCap2CV.h"
+
+int stereo_match(int argc,char* argv[]){
+ float SQ_SIZE = 0.0295;
+  FlyCap2CVWrapper cam0(0);
+  FlyCap2CVWrapper cam1(1);
+  std::cout << cam0.getCameraSN()<<std::endl;
+  std::cout << cam1.getCameraSN()<<std::endl;
+  cv::FileStorage fs;
+  fs.open("../data/stereo_extrinsics.yml",cv::FileStorage::READ);
+  cv::Mat K0,D0,K1,D1,R,T,E,F;
+  fs["K0"] >> K0;
+  fs["D0"] >> D0;
+  fs["K1"] >> K1;
+  fs["D1"] >> D1;
+  fs["R"] >> R;
+  fs["T"] >> T;
+  fs["E"] >> E;
+  fs["F"] >> F;
+  std::cout <<"K0"<< K0 <<std::endl;
+  std::cout <<"K1"<< K1 <<std::endl;
+  std::cout <<"D0"<< D0 <<std::endl;
+  std::cout <<"D1"<< D1 <<std::endl;
+  std::cout <<"E"<< E <<std::endl;
+  std::cout <<"F"<< F <<std::endl;
+  std::cout <<"R"<< R <<std::endl;
+  std::cout <<"T"<< T <<std::endl;
+
+  cv::Mat frame0,frame1;
+  cv::Mat disp;
+  cv::Mat gray0,gray1;
+  std::vector<cv::Point2f> corner0,corner1;
+  std::vector<std::vector<cv::Point2f>> corner0_list,corner1_list;
+    
+  frame0 = cam0.readImage();
+  frame1 = cam1.readImage();
+  cv::cvtColor(frame0,gray0,cv::COLOR_BGR2GRAY);
+  cv::cvtColor(frame1,gray1,cv::COLOR_BGR2GRAY);
+  cv::Mat combine(cv::Size(frame0.cols*2,frame0.rows),CV_8UC3);
+
+  cv::Mat R0,R1,P0,P1,Q;
+  cv::stereoRectify(K0,D0,K1,D1,frame0.size(),R,T,R0,R1,P0,P1,Q);
+  cv::Mat map01,map02,map11,map12;
+  cv::initUndistortRectifyMap(K0,D0,R,K0,frame0.size(),CV_32FC1,map01,map02);
+  cv::initUndistortRectifyMap(K1,D1,R,K1,frame1.size(),CV_32FC1,map11,map12);
+  cv::Ptr<cv::cuda::StereoBM> sm = cv::cuda::createStereoBM(256);
+//  cv::Ptr<cv::cuda::StereoBeliefPropagation> sm = cv::cuda::createStereoBeliefPropagation(256);
+//  cv::Ptr<cv::cuda::StereoConstantSpaceBP> sm = cv::cuda::createStereoConstantSpaceBP(256);
+
+
+  cv::VideoWriter writer("../data/disparity_video.avi",cv::VideoWriter::fourcc('D', 'I', 'V', '3'),30.0,frame0.size());
+  while(1){
+    frame0 = cam0.readImage();
+    frame1 = cam1.readImage();
+    cv::remap(frame0,frame0,map01,map02,cv::INTER_LINEAR);
+    cv::remap(frame1,frame1,map11,map12,cv::INTER_LINEAR);
+    cv::cvtColor(frame0,gray0,cv::COLOR_BGR2GRAY);
+    cv::cvtColor(frame1,gray1,cv::COLOR_BGR2GRAY);
+
+    cv::cuda::GpuMat d_left,d_right;
+    d_left.upload(gray0);
+    d_right.upload(gray1);
+    cv::cuda::GpuMat d_disp(frame0.size(), CV_8UC1);
+
+    sm->compute(d_left,d_right,d_disp);
+    d_disp.download(disp);
+     
+//    cv::Mat imageLeft(combine, cv::Rect(0, 0, frame0.cols, frame0.rows));
+//    cv::Mat imageRight(combine, cv::Rect(frame0.cols, 0, frame1.cols, frame1.rows));
+//    frame0.copyTo(imageLeft);
+//    frame1.copyTo(imageRight);
+    
+//    cv::imshow("combined",combine);
+    cv::imshow("disp",disp);
+    int key = cv::waitKey(1);
+    if(key == 'q')break;
+    if(key == 27)break;
+    writer << disp;
+    //d_writer->write(d_disp);
+  }
+  return 0;
+}
 
 int stereo_calibrate(int argc,char* argv[]){
   float SQ_SIZE = 0.0295;
@@ -192,6 +274,9 @@ int mono_calibrate(int argc, char* argv[]){
 }
 
 int main(int argc, char* argv[]){
+  if(STEREO_MATCH){
+    stereo_match(argc,argv);
+  }else
   if(STEREO_CALIBRATE){
     stereo_calibrate(argc,argv);
   }else

@@ -4,7 +4,8 @@ add_definitions(-Wall)
 add_definitions(-std=c++11)
 
 add_compile_options(-DMONO_CALIBRATE=0)
-add_compile_options(-DSTEREO_CALIBRATE=1)
+add_compile_options(-DSTEREO_CALIBRATE=0)
+add_compile_options(-DSTEREO_MATCH=1)
 
 find_package(OpenCV REQUIRED)
 
