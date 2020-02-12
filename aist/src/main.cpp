@@ -8,7 +8,6 @@
 #include"FlyCap2CV.h"
 
 int stereo_match(int argc,char* argv[]){
- float SQ_SIZE = 0.0295;
   FlyCap2CVWrapper cam0(0);
   FlyCap2CVWrapper cam1(1);
   std::cout << cam0.getCameraSN()<<std::endl;
@@ -50,9 +49,10 @@ int stereo_match(int argc,char* argv[]){
   cv::Mat map01,map02,map11,map12;
   cv::initUndistortRectifyMap(K0,D0,R,K0,frame0.size(),CV_32FC1,map01,map02);
   cv::initUndistortRectifyMap(K1,D1,R,K1,frame1.size(),CV_32FC1,map11,map12);
-  cv::Ptr<cv::cuda::StereoBM> sm = cv::cuda::createStereoBM(256);
+//  cv::Ptr<cv::cuda::StereoBM> sm = cv::cuda::createStereoBM(256,3);
+  cv::Ptr<cv::cuda::DisparityBilateralFilter> dbf = cv::cuda::createDisparityBilateralFilter(256,3,1);
 //  cv::Ptr<cv::cuda::StereoBeliefPropagation> sm = cv::cuda::createStereoBeliefPropagation(256);
-//  cv::Ptr<cv::cuda::StereoConstantSpaceBP> sm = cv::cuda::createStereoConstantSpaceBP(256);
+  cv::Ptr<cv::cuda::StereoConstantSpaceBP> sm = cv::cuda::createStereoConstantSpaceBP(256);
 
 
   cv::VideoWriter writer("../data/disparity_video.avi",cv::VideoWriter::fourcc('D', 'I', 'V', '3'),30.0,frame0.size());
@@ -70,18 +70,21 @@ int stereo_match(int argc,char* argv[]){
     cv::cuda::GpuMat d_disp(frame0.size(), CV_8UC1);
 
     sm->compute(d_left,d_right,d_disp);
+    dbf->apply(d_disp,d_left,d_disp);
     d_disp.download(disp);
      
 //    cv::Mat imageLeft(combine, cv::Rect(0, 0, frame0.cols, frame0.rows));
 //    cv::Mat imageRight(combine, cv::Rect(frame0.cols, 0, frame1.cols, frame1.rows));
 //    frame0.copyTo(imageLeft);
 //    frame1.copyTo(imageRight);
-    
 //    cv::imshow("combined",combine);
+
+    disp.convertTo(disp,CV_8U,255.0/(256*16.0));
     cv::imshow("disp",disp);
     int key = cv::waitKey(1);
     if(key == 'q')break;
     if(key == 27)break;
+    cv::cvtColor(disp,disp,cv::COLOR_GRAY2BGR);
     writer << disp;
     //d_writer->write(d_disp);
   }
