@@ -44,11 +44,11 @@ FlyCap2CVWrapper::FlyCap2CVWrapper(int number)
     }
     // Disable Auto changes
     autoFrameRate(false, 85.0f);
-    autoWhiteBalance(false, 640, 640);
-    autoExposure(false, 1.585f);
+    autoWhiteBalance(false, 523, 708);
+    autoExposure(false, 1.322f);
     autoSaturation(false, 100.0f);
-    autoShutter(false, 7.5f);
-    autoGain(false, 10.0f);
+    autoShutter(false, 7.052f);
+    autoGain(false, 8.067f);
 
     flycamError = flycam.StartCapture();
     if (flycamError == PGRERROR_ISOCH_BANDWIDTH_EXCEEDED)
@@ -74,6 +74,11 @@ FlyCap2CVWrapper::~FlyCap2CVWrapper()
     flycam.Disconnect();
 }
 
+std::string FlyCap2CVWrapper::getCameraSN(){
+  std::stringstream ss;
+  ss << flycamInfo.serialNumber;
+  return ss.str();
+}
 // 自動露出設定
 // true -> auto, false -> manual
 void FlyCap2CVWrapper::autoExposure(bool flag, float absValue = 1.585f)

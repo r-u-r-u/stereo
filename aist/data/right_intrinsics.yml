@@ -1,6 +1,6 @@
 %YAML:1.0
 ---
-RMS: 3.7824726733863784e-01
+SN: "12292554"
 K: !!opencv-matrix
    rows: 3
    cols: 3

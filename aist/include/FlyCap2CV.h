@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include "opencv2/opencv.hpp"
 #include "flycapture/FlyCapture2.h"
 #include "flycapture/FlyCapture2GUI.h"
@@ -26,4 +27,5 @@ public:
     void autoGain(bool flag, float dB);
     void autoFrameRate(bool flag, float fps);
     bool checkError();
+    std::string getCameraSN();
 };
