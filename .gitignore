@@ -1,4 +1,5 @@
-build/
+aist/build/
+aist/data/*.avi
 phrase.txt
 
 laptop/CV_learn
